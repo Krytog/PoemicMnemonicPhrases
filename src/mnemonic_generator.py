@@ -1,5 +1,5 @@
 from mapping import Mapping, MappingsMaster
-from bits import BitsWord
+from bits import BitsWord, get_bits_from_number
 
 
 class Scheme16:
@@ -56,7 +56,10 @@ class MnemonicGenerator:
                 simple_words.append(self.mappings_master[kind].get_word(bitword.num))
             else:
                 rhyme = self.mappings_master[kind].get_word(bitword.num)
-                rhyme1, rhyme2 = rhyme.split(' ')
+                try:
+                    rhyme1, rhyme2 = rhyme.split(' ')
+                except:
+                    print("PIZDEC:", rhyme)
                 rhymes.append(rhyme1)
                 rhymes.append(rhyme2)
         mnemonic = ""
@@ -79,3 +82,34 @@ class MnemonicGenerator:
                 output += " "
         output = output[:-1]
         return output
+
+    def get_entries_from_mnemonic(self, mnemonic):
+        words = list(mnemonic.split(' '))
+        simple_words = []
+        rhymes = []
+        for index, word in enumerate(words):
+            if index % 4 != 3:
+                simple_words.append(word)
+            else:
+                rhymes.append(word)
+        output = []
+        for word in simple_words:
+            output.append(word)
+        for i in range(0, len(rhymes), 2):
+            output.append(f"{rhymes[i]} {rhymes[i + 1]}")
+        return output
+
+    def get_bits_from_mnemonic(self, mnemonic):
+        entries = self.get_entries_from_mnemonic(mnemonic)
+        schema = Scheme16()
+
+        output = ""
+        for i in range(len(entries)):
+            entry = entries[i]
+            kind, bits_count = schema.entries[i]
+            number = self.mappings_master[kind].get_number(entry)
+            bits = get_bits_from_number(number, bits_count)
+            output += bits
+        
+        return output
+        
